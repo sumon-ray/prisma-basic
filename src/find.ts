@@ -2,18 +2,40 @@
 
 import { PrismaClient } from "@prisma/client";
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({
+  log: [
+    {
+      emit: "event",
+      level: "query",
+    },
+  ],
+});
+
+prisma.$on("query", (e) => {
+  console.log(e.query);
+});
 
 const find = async () => {
   // find all
   try {
-    const findFirst = await prisma.user.findFirst({
+    const findFirst = await prisma.user.findMany({
       where: {
         id: 1,
       },
+      include: {
+        post: {
+          include: {
+            postCategory: {
+              include: {
+                category: true,
+              },
+            },
+          },
+        },
+      },
     });
 
-    console.log({ findFirst });
+    // console.dir(findFirst, { depth: Infinity });
   } catch (error) {
     console.log("no post found");
   }
